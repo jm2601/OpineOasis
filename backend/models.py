@@ -74,10 +74,10 @@ class Community(Base):
     owner = mapped_column(ForeignKey("user.id"), nullable=False)
     time_created = mapped_column(String(64), nullable=False)
 
-    def __init__(self, name, teacher, time_created, **kwargs: Any):
+    def __init__(self, name, owner, time_created, **kwargs: Any):
         super().__init__(**kwargs)
         self.name = name
-        self.teacher = teacher
+        self.owner = owner
         self.time_created = time_created
 
 
@@ -128,8 +128,6 @@ class Comment(Base):
     user = mapped_column(ForeignKey("user.id"), nullable=False)
     text = mapped_column(String(1024), nullable=False)
     date = mapped_column(String(64), nullable=False)
-    upvotes = mapped_column(Integer, nullable=False, default=0)
-    downvotes = mapped_column(Integer, nullable=False, default=0)
     reply_to = mapped_column(ForeignKey("comment.id"), nullable=True)
 
     def __init__(self, post, user, text, date, upvotes, downvotes, reply_to, **kwargs: Any):
@@ -141,3 +139,33 @@ class Comment(Base):
         self.upvotes = upvotes
         self.downvotes = downvotes
         self.reply_to = reply_to
+
+
+@dataclass
+class PostVote(Base):
+    __tablename__ = "postvote"
+    id = mapped_column(Integer, primary_key=True, autoincrement=True)
+    post = mapped_column(ForeignKey("post.id"), nullable=False)
+    user = mapped_column(ForeignKey("user.id"), nullable=False)
+    vote = mapped_column(Integer, nullable=False)
+
+    def __init__(self, post, user, vote, **kwargs: Any):
+        super().__init__(**kwargs)
+        self.post = post
+        self.user = user
+        self.vote = vote
+
+
+@dataclass
+class PostVote(Base):
+    __tablename__ = "commentvote"
+    id = mapped_column(Integer, primary_key=True, autoincrement=True)
+    comment = mapped_column(ForeignKey("comment.id"), nullable=False)
+    user = mapped_column(ForeignKey("user.id"), nullable=False)
+    vote = mapped_column(Integer, nullable=False)
+
+    def __init__(self, comment, user, vote, **kwargs: Any):
+        super().__init__(**kwargs)
+        self.comment = comment
+        self.user = user
+        self.vote = vote

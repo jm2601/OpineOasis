@@ -1,0 +1,50 @@
+.comment {
+    background-color: var(--background-color);
+    padding: 10px;
+    margin-bottom: 20px;
+}
+
+.comment-user-avatar {
+    height: 100%;
+    margin-right: 5px;
+}
+
+.comment-header {
+    display: flex;
+    align-items: center;
+    color: #999999;
+    font-size: 0.9rem;
+    font-weight: bold;
+    height: 1rem;
+    margin-bottom: 5px;
+}
+
+.comment-split {
+    display: flex;
+    margin-bottom: 5px;
+}
+
+.comment-votes {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+    margin-right: 5px;
+}
+
+.comment-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+p.comment-comment-count {
+    color: #999999;
+    font-size: 0.8rem;
+    margin-bottom: 5px;
+}
+
+.comment-user-info a {
+    color: var(--secondary-color);
+    text-decoration: none;
+}

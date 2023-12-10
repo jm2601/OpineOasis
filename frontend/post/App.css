@@ -1,0 +1,9 @@
+.post-comments {
+    padding: 10px;
+    margin-bottom: 20px;
+}
+
+.post-comments h1 {
+    font-size: 1.5em;
+    margin: 0;
+}
