@@ -78,8 +78,7 @@ export default function UserButton() {
                             ]
                         ) : (
                             [
-                                <MenuItem key={"login"} onClick={() => {location.href = `/login`}}><LoginIcon style={{paddingRight: "5px"}}/> Login</MenuItem>,
-                                <MenuItem key={"register"} onClick={() => {location.href = `/register`}}><AppRegistrationIcon style={{paddingRight: "5px"}}/> Register</MenuItem>,
+                                <MenuItem key={"login"} onClick={() => {location.href = `/login`}}><LoginIcon style={{paddingRight: "5px"}}/> Login/Register</MenuItem>,
                             ]
                         )
                     }

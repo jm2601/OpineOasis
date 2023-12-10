@@ -4,7 +4,7 @@ import {createTheme} from "@mui/material";
 const Theme = createTheme({
     typography: {
         fontFamily: [
-            "Noto Sans",
+            "Varela Round",
             "sans-serif"
         ].join(','),
         button: {
