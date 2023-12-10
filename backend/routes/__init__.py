@@ -1,3 +1,4 @@
 from routes.login import *
-from routes.student import *
-from routes.teacher import *
+from routes.community import *
+from routes.post import *
+from routes.file import *

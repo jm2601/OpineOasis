@@ -40,44 +40,6 @@ def login_post():
     return response, 200
 
 
-@login_blueprint.route("/jsontest", methods=["POST"])
-def test_post():
-    json_payload = request.get_json()
-    if json_payload is None:
-        return jsonify({"success": False, "message": "No data received"}), 400
-
-    if "username" not in json_payload or "password" not in json_payload:
-        return jsonify({"success": False, "message": "Missing username or password"}), 400
-
-    username = json_payload["username"]
-    password = json_payload["password"]
-
-    backend_user = ctx.query(User).filter(User.username == username).first()
-    if backend_user and bcrypt.check_password_hash(backend_user.password, password):
-        login_user(backend_user, remember=True, duration=timedelta(days=7))
-        return jsonify({"success": True, "message": "Login successful"}), 200
-    else:
-        return jsonify({"success": False, "message": "Invalid username or password"}), 401
-
-
-@login_blueprint.route("/communities", methods=["GET"])
-def communities_get():
-    current_app.logger.info("Getting communities")
-
-    return jsonify(ctx.query(Community)), 200
-
-
-@login_blueprint.route("/community/<int:community_id>/post/<int:post_id>", methods=["GET"])
-def community_post_get(community_id, post_id):
-    current_app.logger.info("Getting community post")
-
-    post = ctx.query(Post).filter(Post.id == post_id and Post.community == community_id).first()
-    if post is None:
-        return jsonify({"success": False, "message": "Invalid post or community ID"}), 400
-
-    return jsonify(post), 200
-
-
 @login_blueprint.route("/logout", methods=["GET", "POST"])
 def logout_post():
     current_app.logger.info("Logout attempt made")
@@ -127,133 +89,35 @@ def generate_temp_data():
 
     user = User("wle", "William Le", "wle", UserType.ADMIN)
     db.session.add(user)
-    user = User("dstanford", "Derek Stanford", "dstanford", UserType.ADMIN)
+    user = User("raguilar", "Ray Aguilar", "raguilar", UserType.ADMIN)
     db.session.add(user)
-    user = User("dbates", "David Bates", "dbates", UserType.ADMIN)
+    user = User("eferguson", "Eric Ferguson", "eferguson", UserType.ADMIN)
     db.session.add(user)
-    user = User("ktorresanaya", "Kevin Torres-Anaya", "ktorresanaya", UserType.ADMIN)
-    db.session.add(user)
-
-    user = User("jsantos", "Jose Santos", "jsantos", UserType.STUDENT)
-    db.session.add(user)
-    user = User("bbrown", "Betty Brown", "bbrown", UserType.STUDENT)
-    db.session.add(user)
-    user = User("jstuart", "John Stuart", "jstuart", UserType.STUDENT)
-    db.session.add(user)
-    user = User("lcheng", "Li Cheng", "lcheng", UserType.STUDENT)
-    db.session.add(user)
-    user = User("nlittle", "Nancy Little", "nlittle", UserType.STUDENT)
-    db.session.add(user)
-    user = User("mnorris", "Mindy Norris", "mnorris", UserType.STUDENT)
-    db.session.add(user)
-    user = User("aranganath", "Aditya Ranganath", "aranganath", UserType.STUDENT)
-    db.session.add(user)
-    user = User("ychen", "Yi Wen Chen", "ychen", UserType.STUDENT)
+    user = User("jmiranda", "Javier Miranda", "jmiranda", UserType.ADMIN)
     db.session.add(user)
 
-    user = User("walmart", "Ammon Hepworth", "walmart", UserType.TEACHER)
+    user = User("jsantos", "Jose Santos", "jsantos", UserType.USER)
     db.session.add(user)
-    user = User("rjenkins", "Ralph Jenkins", "rjenkins", UserType.TEACHER)
+    user = User("bbrown", "Betty Brown", "bbrown", UserType.USER)
     db.session.add(user)
-    user = User("swalker", "Susan Walker", "swalker", UserType.TEACHER)
+    user = User("jstuart", "John Stuart", "jstuart", UserType.USER)
+    db.session.add(user)
+    user = User("lcheng", "Li Cheng", "lcheng", UserType.USER)
+    db.session.add(user)
+    user = User("nlittle", "Nancy Little", "nlittle", UserType.USER)
+    db.session.add(user)
+    user = User("mnorris", "Mindy Norris", "mnorris", UserType.USER)
+    db.session.add(user)
+    user = User("aranganath", "Aditya Ranganath", "aranganath", UserType.USER)
+    db.session.add(user)
+    user = User("ychen", "Yi Wen Chen", "ychen", UserType.USER)
     db.session.add(user)
 
-    course = Course("Math 101", db.session.query(User).filter(User.username == "rjenkins").first().id, "MWF 10:00-10:50 AM", 8)
-    db.session.add(course)
-    course = Course("Physics 121", db.session.query(User).filter(User.username == "swalker").first().id, "TR 11:00-11:50 AM", 10)
-    db.session.add(course)
-    course = Course("CS 106", db.session.query(User).filter(User.username == "walmart").first().id, "MWF 2:00-2:50 PM", 10)
-    db.session.add(course)
-    course = Course("CS 162", db.session.query(User).filter(User.username == "walmart").first().id, "TR 3:00-3:50 PM", 4)
-    db.session.add(course)
-
-    enrollment = Enrollment(
-        db.session.query(User).filter(User.username == "jsantos").first().id,
-        db.session.query(Course).filter(Course.name == "Math 101").first().id,
-        92)
-    db.session.add(enrollment)
-    enrollment = Enrollment(
-        db.session.query(User).filter(User.username == "bbrown").first().id,
-        db.session.query(Course).filter(Course.name == "Math 101").first().id,
-        65)
-    db.session.add(enrollment)
-    enrollment = Enrollment(
-        db.session.query(User).filter(User.username == "jstuart").first().id,
-        db.session.query(Course).filter(Course.name == "Math 101").first().id,
-        86)
-    db.session.add(enrollment)
-    enrollment = Enrollment(
-        db.session.query(User).filter(User.username == "lcheng").first().id,
-        db.session.query(Course).filter(Course.name == "Math 101").first().id,
-        77)
-    db.session.add(enrollment)
-
-    enrollment = Enrollment(
-        db.session.query(User).filter(User.username == "nlittle").first().id,
-        db.session.query(Course).filter(Course.name == "Physics 121").first().id,
-        53)
-    db.session.add(enrollment)
-    enrollment = Enrollment(
-        db.session.query(User).filter(User.username == "lcheng").first().id,
-        db.session.query(Course).filter(Course.name == "Physics 121").first().id,
-        85)
-    db.session.add(enrollment)
-    enrollment = Enrollment(
-        db.session.query(User).filter(User.username == "mnorris").first().id,
-        db.session.query(Course).filter(Course.name == "Physics 121").first().id,
-        94)
-    db.session.add(enrollment)
-    enrollment = Enrollment(
-        db.session.query(User).filter(User.username == "jstuart").first().id,
-        db.session.query(Course).filter(Course.name == "Physics 121").first().id,
-        91)
-    db.session.add(enrollment)
-    enrollment = Enrollment(
-        db.session.query(User).filter(User.username == "bbrown").first().id,
-        db.session.query(Course).filter(Course.name == "Physics 121").first().id,
-        88)
-    db.session.add(enrollment)
-
-    enrollment = Enrollment(
-        db.session.query(User).filter(User.username == "aranganath").first().id,
-        db.session.query(Course).filter(Course.name == "CS 106").first().id,
-        93)
-    db.session.add(enrollment)
-    enrollment = Enrollment(
-        db.session.query(User).filter(User.username == "ychen").first().id,
-        db.session.query(Course).filter(Course.name == "CS 106").first().id,
-        85)
-    db.session.add(enrollment)
-    enrollment = Enrollment(
-        db.session.query(User).filter(User.username == "nlittle").first().id,
-        db.session.query(Course).filter(Course.name == "CS 106").first().id,
-        57)
-    db.session.add(enrollment)
-    enrollment = Enrollment(
-        db.session.query(User).filter(User.username == "mnorris").first().id,
-        db.session.query(Course).filter(Course.name == "CS 106").first().id,
-        68)
-    db.session.add(enrollment)
-
-    enrollment = Enrollment(
-        db.session.query(User).filter(User.username == "aranganath").first().id,
-        db.session.query(Course).filter(Course.name == "CS 162").first().id,
-        99)
-    db.session.add(enrollment)
-    enrollment = Enrollment(
-        db.session.query(User).filter(User.username == "nlittle").first().id,
-        db.session.query(Course).filter(Course.name == "CS 162").first().id,
-        87)
-    db.session.add(enrollment)
-    enrollment = Enrollment(
-        db.session.query(User).filter(User.username == "ychen").first().id,
-        db.session.query(Course).filter(Course.name == "CS 162").first().id,
-        92)
-    db.session.add(enrollment)
-    enrollment = Enrollment(
-        db.session.query(User).filter(User.username == "jstuart").first().id,
-        db.session.query(Course).filter(Course.name == "CS 162").first().id,
-        67)
-    db.session.add(enrollment)
+    user = User("walmart", "Ammon Hepworth", "walmart", UserType.USER)
+    db.session.add(user)
+    user = User("rjenkins", "Ralph Jenkins", "rjenkins", UserType.USER)
+    db.session.add(user)
+    user = User("swalker", "Susan Walker", "swalker", UserType.USER)
+    db.session.add(user)
 
     db.session.commit()

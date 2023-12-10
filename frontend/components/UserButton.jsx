@@ -17,14 +17,16 @@ async function checkLogin(state, setState) {
 
         setState({
             checkedLogin: true,
-            username: body.username
+            username: body.username,
+            name: body.name
         });
     } catch (e) {
         console.error("Failed to check login status: " + e);
 
         setState({
             checkedLogin: true,
-            username: null
+            username: null,
+            name: null
         });
     }
 }
@@ -32,7 +34,8 @@ async function checkLogin(state, setState) {
 export default function UserButton() {
     const [state, setState] = useState({
         checkedLogin: false,
-        username: null
+        username: null,
+        name: null
     });
 
     useEffect(() => {
@@ -48,6 +51,8 @@ export default function UserButton() {
         setAnchorEl(null);
     };
 
+    const name = state.name === null ? (state.username === null ? "Guest" : state.username) : state.name
+
     return (
         !state.checkedLogin ? null : (
             <div>
@@ -58,7 +63,7 @@ export default function UserButton() {
                     aria-expanded={open ? 'true' : undefined}
                     onClick={handleClick}
                 >
-                    Welcome, {state.username === null ? "guest" : state.username}! ▼
+                    Welcome, {name}! ▼
                 </Button>
                 <Menu
                     id="basic-menu"

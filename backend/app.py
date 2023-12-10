@@ -13,8 +13,9 @@ app = Flask(__name__)
 app.config.from_pyfile('config.py')
 
 app.register_blueprint(login_blueprint)
-app.register_blueprint(student_blueprint)
-app.register_blueprint(teacher_blueprint)
+app.register_blueprint(community_blueprint)
+app.register_blueprint(post_blueprint)
+app.register_blueprint(file_blueprint)
 
 CORS(app)
 
@@ -36,18 +37,18 @@ class AdminHomeView(AdminIndexView):
         return redirect("/login")
 
 
-admin = Admin(app, name='CSE-106 School Admin', template_mode='bootstrap4', index_view=AdminHomeView())
+admin = Admin(app, name='Opine Oasis', template_mode='bootstrap4', index_view=AdminHomeView())
 
 
 @app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")
 def serve(path):
-    if request.cookies.get("session") is None:
-        return redirect("/login")
-
-    username = verify_login_cookie(request.cookies.get("session"), app.config["COOKIE_SECRET"])
-    if username is None:
-        return redirect("/login")
+    # if request.cookies.get("session") is None:
+    #     return redirect("/login")
+    #
+    # username = verify_login_cookie(request.cookies.get("session"), app.config["COOKIE_SECRET"])
+    # if username is None:
+    #     return redirect("/login")
 
     app.logger.info("Reading from %s", path)
     if path != "" and os.path.exists(app.static_folder + "/" + path):
@@ -55,19 +56,7 @@ def serve(path):
     elif path != "" and os.path.exists(app.static_folder + "/" + path + "/index.html"):
         return send_from_directory(app.static_folder, path + "/index.html")
     else:
-        user = db.session.query(User).filter(User.username == username).first()
-
-        if user is None:
-            return redirect("/login")
-
-        if user.type == UserType.STUDENT:
-            return redirect("/student")
-        elif user.type == UserType.TEACHER:
-            return redirect("/teacher")
-        elif user.type == UserType.ADMIN:
-            return redirect("/admin")
-        else:
-            return redirect("/login")
+        return redirect("/community/1")
 
 
 @app.errorhandler(404)
@@ -87,4 +76,4 @@ def prepare_db():
 
 if __name__ == '__main__':
     prepare_db()
-    app.run(debug=True, threaded=True, port=5000)
+    app.run(debug=True, threaded=True, port=5172)

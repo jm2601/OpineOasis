@@ -33,11 +33,12 @@ class User(Base):
     type = mapped_column(Integer, nullable=False)
     profile_picture = mapped_column(ForeignKey("file.id"), nullable=True)
 
-    def __init__(self, username, name, password, user_type: UserType, **kwargs: Any):
+    def __init__(self, username, name, password, user_type: UserType, profile_picture=None, **kwargs: Any):
         super().__init__(**kwargs)
         self.name = name
         self.username = username
         self.type = int(user_type)
+        self.profile_picture = profile_picture
 
         (pwhash, pwsalt) = hash_password(password)
         self.password = pwhash
@@ -157,7 +158,7 @@ class PostVote(Base):
 
 
 @dataclass
-class PostVote(Base):
+class CommentVote(Base):
     __tablename__ = "commentvote"
     id = mapped_column(Integer, primary_key=True, autoincrement=True)
     comment = mapped_column(ForeignKey("comment.id"), nullable=False)

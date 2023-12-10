@@ -123,14 +123,20 @@ function App() {
                             variant={"outlined"}
                             type={"text"}
                             fullWidth={true}
-                            margin={"normal"}/>
+                            margin={"normal"}
+                            onChange={(e) => setState({...state, username: e.target.value})}
+                            value={state.username}
+                        />
                         <TextField
                             id={"password"}
                             label={"Password"}
                             variant={"outlined"}
                             type={"password"}
                             fullWidth={true}
-                            margin={"normal"}/>
+                            margin={"normal"}
+                            onChange={(e) => setState({...state, password: e.target.value})}
+                            value={state.password}
+                        />
                         <FormControlLabel control={<Checkbox defaultChecked/>} label="Remember me"/>
                         <div style={{color: "red"}}>{state.error}</div>
                         <LoadingButton variant={"contained"} fullWidth={true} loading={false}
