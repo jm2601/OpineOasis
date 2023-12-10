@@ -1,8 +1,18 @@
 import './App.css'
 import Post from "../components/Post.jsx";
-import {Paper} from "@mui/material";
+import {
+    Button,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
+    Paper,
+    TextField
+} from "@mui/material";
 import {useState} from "react";
 import Comment from "../components/Comment.jsx";
+import LoadingButton from "@mui/lab/LoadingButton";
 
 const examplePost = {
     id: 4,
@@ -29,7 +39,7 @@ const exampleComment = {
 }
 
 function generateComments(state) {
-    return state.comments.map((comment) => {
+    return state.comments.toSorted((a, b) => a.date - b.date).map((comment) => {
        return (
            <Comment
                id={comment.id}
@@ -45,18 +55,111 @@ function generateComments(state) {
     });
 }
 
+async function handleComment(state, setState) {
+    try {
+        const response = await fetch("/me");
+        const body = await response.json();
+
+        if (response.status !== 200) {
+            throw Error(body.message);
+        }
+    } catch (e) {
+        console.error("Failed to get user; probably not logged in: " + e);
+        location.href = "/login";
+        return;
+    }
+
+    setState({
+        ...state,
+        commentEditorOpen: true,
+    });
+}
+
+async function submitComment(state, setState) {
+    try {
+        setState({
+            ...state,
+            commentLoading: true,
+        });
+
+        const response = await fetch("/comment", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                post: state.post.id,
+                text: state.text,
+            }),
+        });
+
+        const body = await response.json();
+
+        if (response.status !== 200) {
+            throw Error(body.message);
+        }
+
+        setState({
+            ...state,
+            commentLoading: false,
+            commentEditorOpen: false,
+            text: "",
+            comments: [...state.comments, body.comment],
+        });
+    } catch (e) {
+        console.error("Failed to submit comment: " + e);
+
+        alert("Failed to submit comment: " + e);
+
+        setState({
+            ...state,
+            commentLoading: false,
+        });
+    }
+}
+
 function App() {
     const [state, setState] = useState({
         post: examplePost,
         comments: [exampleComment, {...exampleComment, id: 93, replyTo: 92}, {...exampleComment, id: 94, replyTo: 92}, {...exampleComment, id: 95, replyTo: 92}, {...exampleComment, id: 96, replyTo: 92}],
-    })
+        commentEditorOpen: false,
+        text: "",
+        commentLoading: false,
+    });
+    
+    const handleClose = () => setState({...state, commentEditorOpen: false});
 
     return (
         <div className={"post-container"}>
             <Post full vote={state.post.vote} community={state.post.community} id={state.post.id} votes={state.post.votes} comments={state.post.comments} date={state.post.date} user={state.post.user} title={state.post.title} text={state.post.text} img={state.post.img} />
 
             <Paper elevation={12} className={"post-comments"}>
-                <h1>Post comments ({state.comments.length})</h1>
+                <span className={"post-header"}>Post comments ({state.comments.length})</span>
+                <Button variant={"contained"} onClick={() => handleComment(state, setState)}>Add comment</Button>
+                <Dialog open={state.commentEditorOpen} onClose={handleClose}>
+                    <DialogTitle>Create post</DialogTitle>
+                    <DialogContent>
+                        <DialogContentText>
+                            Create a comment for this post. Please have fun and be nice! Or don't, I'm not your mom.
+                        </DialogContentText>
+                        <TextField
+                            margin="dense"
+                            id="name"
+                            label="Text"
+                            type="text"
+                            fullWidth
+                            variant="standard"
+                            multiline
+                            rows={4}
+                            onChange={(e) => setState({...state, text: e.target.value})}
+                            value={state.text}
+                        />
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleClose}>Cancel</Button>
+                        <LoadingButton onClick={() => submitComment(state, setState)} loading={state.commentLoading}>Post</LoadingButton>
+                    </DialogActions>
+                </Dialog>
             </Paper>
 
             {generateComments(state)}

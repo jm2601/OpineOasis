@@ -70,6 +70,41 @@ async function handlePost(state, setState) {
     });
 }
 
+async function submitPost(state, setState) {
+    setState({
+        ...state,
+        postLoading: true,
+    });
+
+    const formData = new FormData();
+    formData.append("title", state.title);
+    formData.append("text", state.text);
+    formData.append("image", state.imageUpload);
+
+    try {
+        const response = await fetch(`/community/${state.searchQuery.id}/post`, {
+            method: "POST",
+            body: formData,
+        });
+        const body = await response.json();
+
+        if (response.status !== 200) {
+            throw Error(body.message);
+        }
+
+        location.href = `/community/${state.searchQuery.id}/post/${body.id}`;
+    } catch (e) {
+        console.error("Failed to submit post: " + e);
+
+        alert("Failed to submit post: " + e);
+
+        setState({
+            ...state,
+            postLoading: false,
+        });
+    }
+}
+
 export default function TopicSwitcher() {
     const [state, setState] = useState({
         searchResults: TESTING_SEARCH_RESULTS,
@@ -114,7 +149,7 @@ export default function TopicSwitcher() {
                 value={state.searchQuery}
             />
             <Button variant={"contained"} sx={{marginLeft: "10px"}} onClick={() => handlePost(state, setState)}>Create post</Button>
-                <Dialog open={state.postEditorOpen} onClose={handleClose}>
+            <Dialog open={state.postEditorOpen} onClose={handleClose}>
                 <DialogTitle>Create post</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
@@ -167,7 +202,7 @@ export default function TopicSwitcher() {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleClose}>Cancel</Button>
-                    <LoadingButton onClick={handleClose} loading={state.postLoading} loadingPosition={"start"}>Post</LoadingButton>
+                    <LoadingButton onClick={() => submitPost(state, setState)} loading={state.postLoading}>Post</LoadingButton>
                 </DialogActions>
             </Dialog>
         </span>

@@ -7,9 +7,10 @@ function App() {
     const [state, setState] = useState({
         username: "",
         password: "",
+        passwordConfirm: "",
         registrationOpen: false,
         loading: false,
-        error: "asdfasfasdfas"
+        error: ""
     });
 
     const handleLogin = async () => {
@@ -45,7 +46,64 @@ function App() {
                 loading: false
             });
         }
+    };
 
+    const handleRegister = async () => {
+        if (state.password !== state.passwordConfirm) {
+            setState({
+                ...state,
+                error: "Passwords do not match",
+                loading: false
+            });
+            return;
+        } else if (state.username.length < 2) {
+            setState({
+                ...state,
+                error: "Username must be at least 2 characters",
+                loading: false
+            });
+            return;
+        } else if (state.password.length < 4) {
+            setState({
+                ...state,
+                error: "Password must be at least 4 characters",
+                loading: false
+            });
+            return;
+        }
+
+        setState({
+            ...state,
+            error: "",
+            loading: true
+        });
+
+        try {
+            const response = await fetch("/register", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    username: state.username,
+                    password: state.password
+                })
+            });
+
+            if (response.status === 200) {
+                window.location.href = "/";
+            }
+
+            const body = await response.json();
+            throw Error(body.message);
+        } catch (e) {
+            console.error("Failed to register: " + e);
+            setState({
+                ...state,
+                error: "Failed to register: " + e,
+                loading: false
+            });
+        }
     };
 
     return (
@@ -75,7 +133,7 @@ function App() {
                             margin={"normal"}/>
                         <FormControlLabel control={<Checkbox defaultChecked/>} label="Remember me"/>
                         <div style={{color: "red"}}>{state.error}</div>
-                        <LoadingButton variant={"contained"} fullWidth={true} loading={false} loadingPosition={"start"}
+                        <LoadingButton variant={"contained"} fullWidth={true} loading={false}
                                        style={{marginTop: "15px"}} onClick={handleLogin}>Login</LoadingButton>
                         <hr width={"100%"} style={{margin: "2em 0"}}/>
                         <Button
@@ -90,23 +148,32 @@ function App() {
                             variant={"outlined"}
                             type={"text"}
                             fullWidth={true}
-                            margin={"normal"}/>
+                            margin={"normal"}
+                            onChange={(e) => setState({...state, username: e.target.value})}
+                            value={state.username}
+                        />
                         <TextField
                             id={"registerPassword"}
                             label={"Password"}
                             variant={"outlined"}
                             type={"password"}
                             fullWidth={true}
-                            margin={"normal"}/>
+                            margin={"normal"}
+                            onChange={(e) => setState({...state, password: e.target.value})}
+                            value={state.password}
+                        />
                         <TextField
                             id={"registerPasswordConfirm"}
                             label={"Confirm Password"}
                             variant={"outlined"}
                             type={"password"}
                             fullWidth={true}
-                            margin={"normal"}/>
+                            margin={"normal"}
+                            onChange={(e) => setState({...state, passwordConfirm: e.target.value})}
+                            value={state.passwordConfirm}
+                        />
                         <div style={{color: "red"}}>{state.error}</div>
-                        <LoadingButton variant={"contained"} fullWidth={true} loading={state.loading} loadingPosition={"start"} style={{marginTop: "15px"}}>Create account</LoadingButton>
+                        <LoadingButton variant={"contained"} fullWidth={true} loading={state.loading} style={{marginTop: "15px"}} onClick={handleRegister}>Create account</LoadingButton>
                         <hr width={"100%"} style={{margin: "2em 0"}}/>
                         <Button
                             onClick={() => setState({...state, registrationOpen: !state.registrationOpen})}>Already have an account? Click here!</Button>

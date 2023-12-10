@@ -1,9 +1,13 @@
 .post-comments {
     padding: 10px;
     margin-bottom: 20px;
+
+    display: flex;
+    align-items: center;
 }
 
-.post-comments h1 {
+.post-comments .post-header {
+    color: black;
     font-size: 1.5em;
-    margin: 0;
+    margin: 0 10px 0 0;
 }
