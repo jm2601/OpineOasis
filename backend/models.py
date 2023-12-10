@@ -104,18 +104,15 @@ class Post(Base):
     community = mapped_column(ForeignKey("community.id"), nullable=False)
     title = mapped_column(String(64), nullable=False)
     date = mapped_column(String(64), nullable=False)
-    upvotes = mapped_column(Integer, nullable=False, default=0)
-    downvotes = mapped_column(Integer, nullable=False, default=0)
     text = mapped_column(String(1024), nullable=False)
     image = mapped_column(ForeignKey("file.id"), nullable=True)
     user = mapped_column(ForeignKey("user.id"), nullable=False)
 
-    def __init__(self, community, title, date, upvotes, text, image, user, **kwargs: Any):
+    def __init__(self, community, title, date, text, image, user, **kwargs: Any):
         super().__init__(**kwargs)
         self.community = community
         self.title = title
         self.date = date
-        self.upvotes = upvotes
         self.text = text
         self.image = image
         self.user = user
@@ -131,14 +128,12 @@ class Comment(Base):
     date = mapped_column(String(64), nullable=False)
     reply_to = mapped_column(ForeignKey("comment.id"), nullable=True)
 
-    def __init__(self, post, user, text, date, upvotes, downvotes, reply_to, **kwargs: Any):
+    def __init__(self, post, user, text, date, reply_to, **kwargs: Any):
         super().__init__(**kwargs)
         self.post = post
         self.user = user
         self.text = text
         self.date = date
-        self.upvotes = upvotes
-        self.downvotes = downvotes
         self.reply_to = reply_to
 
 

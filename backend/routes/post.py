@@ -2,12 +2,62 @@ import mimetypes
 import os
 
 from flask import Blueprint, jsonify, send_file
+from sqlalchemy import func
 from werkzeug.utils import secure_filename
 from datetime import datetime
 from models import *
 from auth.utilities import get_user
 
 post_blueprint = Blueprint("post_blueprint", __name__)
+
+
+@post_blueprint.route("/api/community/<int:community_id>/post/<int:post_id>", methods=["GET"])
+def post_get(community_id, post_id):
+    (post, user) = db.session.query(Post, User).filter(Post.community == community_id, Post.id == post_id, User.id == Post.user).first()
+    output = {
+        "id": post.id,
+        "title": post.title,
+        "text": post.text,
+        "date": post.date,
+        "image": post.image,
+        "votes": db.session.query(func.sum(PostVote.vote)).filter(PostVote.post == post.id).scalar(),
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "name": user.name,
+            "avatar": user.profile_picture
+        }
+    }
+
+    return jsonify(output), 200
+
+
+@post_blueprint.route("/api/community/<int:community_id>/post/<int:post_id>/vote", methods=["POST"])
+def post_vote(community_id, post_id):
+    user = get_user(request)
+
+    if user is None:
+        return jsonify({"message": "You must be logged in to vote"}), 401
+
+    json = request.get_json()
+    if json is None or "vote" not in json:
+        return jsonify({"message": "Invalid request"}), 400
+
+    vote = json["vote"]
+
+    if vote != 1 and vote != -1 and vote != 0:
+        return jsonify({"message": "Invalid request"}), 400
+
+    post_vote_obj = db.session.query(PostVote).filter(PostVote.post == post_id, PostVote.user == user.id).first()
+    if post_vote_obj is None:
+        post_vote_obj = PostVote(post_id, user.id, int(vote))
+        db.session.add(post_vote_obj)
+    else:
+        post_vote_obj.vote = vote
+
+    db.session.commit()
+
+    return jsonify({"message": "Vote successful"}), 200
 
 
 @post_blueprint.route("/api/community/<int:community_id>/post", methods=["POST"])
