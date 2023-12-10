@@ -1,11 +1,13 @@
 import "./Navbar.css"
+import UserButton from "./UserButton.jsx";
+import TopicSwitcher from "./TopicSwitcher.jsx";
 
 export default function Navbar() {
     return (
         <nav>
-            <span>
-                Opine Oasis
-            </span>
+            <img src={"opineoasis.svg"} alt={"Opine Oasis"} className={"nav-logo"}/>
+            <TopicSwitcher/>
+            <UserButton/>
         </nav>
     );
 }

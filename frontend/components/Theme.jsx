@@ -7,6 +7,9 @@ const Theme = createTheme({
             "Noto Sans",
             "sans-serif"
         ].join(','),
+        button: {
+            textTransform: 'none'
+        }
     },
 });
 

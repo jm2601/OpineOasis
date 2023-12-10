@@ -1,4 +1,14 @@
 nav {
-    background-color: var(--secondary-color);
+    background-color: var(--primary-color);
     padding: 10px;
+    height: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    box-sizing: border-box;
+}
+
+.nav-logo {
+    height: 100%;
 }

@@ -1,0 +1,31 @@
+body {
+    background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+}
+
+#root {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+.login-container {
+    display: flex;
+    flex-direction: row;
+}
+
+.login-paper {
+    display: flex;
+    flex-direction: row;
+    padding: 10px
+}
+
+.login-paper > div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    width: 30vw;
+}
