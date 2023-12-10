@@ -7,23 +7,43 @@ function App() {
     const [state, setState] = useState({
         username: "",
         password: "",
-        registrationOpen: false
+        registrationOpen: false,
+        loading: false,
+        error: "asdfasfasdfas"
     });
 
     const handleLogin = async () => {
-        const response = await fetch("/login", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                username: state.username,
-                password: state.password
-            })
+        setState({
+            ...state,
+            error: "",
+            loading: true
         });
 
-        if (response.status === 200) {
-            window.location.href = "/";
+        try {
+            const response = await fetch("/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    username: state.username,
+                    password: state.password
+                })
+            });
+
+            if (response.status === 200) {
+                window.location.href = "/";
+            }
+
+            const body = await response.json();
+            throw Error(body.message);
+        } catch (e) {
+            console.error("Failed to login: " + e);
+            setState({
+                ...state,
+                error: "Failed to login: " + e,
+                loading: false
+            });
         }
 
     };
@@ -53,10 +73,14 @@ function App() {
                             type={"password"}
                             fullWidth={true}
                             margin={"normal"}/>
-                        <FormControlLabel control={<Checkbox defaultChecked />} label="Remember me" />
-                        <LoadingButton variant={"contained"} fullWidth={true} loading={false} loadingPosition={"start"} style={{marginTop: "15px"}} onClick={handleLogin}>Login</LoadingButton>
+                        <FormControlLabel control={<Checkbox defaultChecked/>} label="Remember me"/>
+                        <div style={{color: "red"}}>{state.error}</div>
+                        <LoadingButton variant={"contained"} fullWidth={true} loading={false} loadingPosition={"start"}
+                                       style={{marginTop: "15px"}} onClick={handleLogin}>Login</LoadingButton>
                         <hr width={"100%"} style={{margin: "2em 0"}}/>
-                        <Button onClick={() => setState({...state, registrationOpen: !state.registrationOpen})}>Don&apos;t have an account? Click here!</Button>
+                        <Button
+                            onClick={() => setState({...state, registrationOpen: !state.registrationOpen})}>Don&apos;t
+                            have an account? Click here!</Button>
                     </Collapse>
                     <Collapse in={state.registrationOpen}>
                         <span>Welcome to the community! We're happy that you're here.</span>
@@ -81,7 +105,8 @@ function App() {
                             type={"password"}
                             fullWidth={true}
                             margin={"normal"}/>
-                        <LoadingButton variant={"contained"} fullWidth={true} loading={false} loadingPosition={"start"} style={{marginTop: "15px"}}>Create account</LoadingButton>
+                        <div style={{color: "red"}}>{state.error}</div>
+                        <LoadingButton variant={"contained"} fullWidth={true} loading={state.loading} loadingPosition={"start"} style={{marginTop: "15px"}}>Create account</LoadingButton>
                         <hr width={"100%"} style={{margin: "2em 0"}}/>
                         <Button
                             onClick={() => setState({...state, registrationOpen: !state.registrationOpen})}>Already have an account? Click here!</Button>

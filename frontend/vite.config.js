@@ -9,7 +9,7 @@ export default defineConfig({
       input: {
         community: path.resolve(__dirname, 'community/index.html'),
         login: path.resolve(__dirname, 'login/index.html'),
-        post: path.resolve(__dirname, 'login/post.html'),
+        post: path.resolve(__dirname, 'post/index.html'),
       }
     }
   },

@@ -42,32 +42,41 @@ export default function Post(props) {
     const handleUpvote = () => upvote(state, setState);
     const handleDownvote = () => downvote(state, setState);
 
+    const content = (
+        <div className={"post-content"}>
+            <div className={"post-header"}>
+                <img className={"post-user-avatar"} src={state.user.avatar} alt={state.user.username}/>
+                <div className={"post-user-info"}>
+                    <span>{state.user.username} - {dateToText(state.date)}</span>
+                </div>
+            </div>
+            <h1>{state.title}</h1>
+            <p>{props.full ? state.text : truncatePreviewText(state.text)}</p>
+            <p className={"post-comment-count"}>{state.comments} {pluralize(state.comments, "comment")}</p>
+        </div>
+    );
+
     return (
         <Paper className="post" elevation={12}>
             <div className={"post-split"}>
                 <div className={"post-votes"}>
-                    <IconButton onClick={handleUpvote}><ArrowUpwardIcon className={"post-vote-icon"} style={state.vote === 1 ? {color: "red"} : null} /></IconButton>
+                    <IconButton onClick={handleUpvote}><ArrowUpwardIcon className={"post-vote-icon"}
+                                                                        style={state.vote === 1 ? {color: "red"} : null}/></IconButton>
                     <span className={"post-votes-count"}>{state.votes}</span>
-                    <IconButton onClick={handleDownvote}><ArrowDownwardIcon className={"post-vote-icon"} style={state.vote === -1 ? {color: "blue"} : null} /></IconButton>
+                    <IconButton onClick={handleDownvote}><ArrowDownwardIcon className={"post-vote-icon"}
+                                                                            style={state.vote === -1 ? {color: "blue"} : null}/></IconButton>
                 </div>
-                <a href={`/communities/${state.community}/posts/${state.id}`} className={"post-link"}>
-                    <div className={"post-content"}>
-                        <div className={"post-header"}>
-                            <img className={"post-user-avatar"} src={state.user.avatar} alt={state.user.username}/>
-                            <div className={"post-user-info"}>
-                                <span>{state.user.username} - {dateToText(state.date)}</span>
-                            </div>
-                        </div>
-                        <h1>{state.title}</h1>
-                        <p>{props.full ? state.text : truncatePreviewText(state.text)}</p>
-                        <p className={"post-comment-count"}>{state.comments} {pluralize(state.comments, "comment")}</p>
-                    </div>
-                </a>
+                {
+                    props.full ? content :
+                        <a href={`/communities/${state.community}/posts/${state.id}`} className={"post-link"}>
+                            {content}
+                        </a>
+                }
             </div>
 
-{
-    props.img !== null && props.img !== undefined ?
-        <ExpandableImage img={props.img} title={props.title}/> : null
+            {
+                props.img !== null && props.img !== undefined ?
+                    <ExpandableImage img={props.img} title={props.title}/> : null
             }
         </Paper>
     )
