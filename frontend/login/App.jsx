@@ -5,8 +5,28 @@ import {useState} from "react";
 
 function App() {
     const [state, setState] = useState({
+        username: "",
+        password: "",
         registrationOpen: false
     });
+
+    const handleLogin = async () => {
+        const response = await fetch("/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                username: state.username,
+                password: state.password
+            })
+        });
+
+        if (response.status === 200) {
+            window.location.href = "/";
+        }
+
+    };
 
     return (
         <div className={"login-container"}>
@@ -34,7 +54,7 @@ function App() {
                             fullWidth={true}
                             margin={"normal"}/>
                         <FormControlLabel control={<Checkbox defaultChecked />} label="Remember me" />
-                        <LoadingButton variant={"contained"} fullWidth={true} loading={false} loadingPosition={"start"} style={{marginTop: "15px"}}>Login</LoadingButton>
+                        <LoadingButton variant={"contained"} fullWidth={true} loading={false} loadingPosition={"start"} style={{marginTop: "15px"}} onClick={handleLogin}>Login</LoadingButton>
                         <hr width={"100%"} style={{margin: "2em 0"}}/>
                         <Button onClick={() => setState({...state, registrationOpen: !state.registrationOpen})}>Don&apos;t have an account? Click here!</Button>
                     </Collapse>

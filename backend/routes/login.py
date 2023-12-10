@@ -40,6 +40,44 @@ def login_post():
     return response, 200
 
 
+@login_blueprint.route("/jsontest", methods=["POST"])
+def test_post():
+    json_payload = request.get_json()
+    if json_payload is None:
+        return jsonify({"success": False, "message": "No data received"}), 400
+
+    if "username" not in json_payload or "password" not in json_payload:
+        return jsonify({"success": False, "message": "Missing username or password"}), 400
+
+    username = json_payload["username"]
+    password = json_payload["password"]
+
+    backend_user = ctx.query(User).filter(User.username == username).first()
+    if backend_user and bcrypt.check_password_hash(backend_user.password, password):
+        login_user(backend_user, remember=True, duration=timedelta(days=7))
+        return jsonify({"success": True, "message": "Login successful"}), 200
+    else:
+        return jsonify({"success": False, "message": "Invalid username or password"}), 401
+
+
+@login_blueprint.route("/communities", methods=["GET"])
+def communities_get():
+    current_app.logger.info("Getting communities")
+
+    return jsonify(ctx.query(Community)), 200
+
+
+@login_blueprint.route("/community/<int:community_id>/post/<int:post_id>", methods=["GET"])
+def community_post_get(community_id, post_id):
+    current_app.logger.info("Getting community post")
+
+    post = ctx.query(Post).filter(Post.id == post_id and Post.community == community_id).first()
+    if post is None:
+        return jsonify({"success": False, "message": "Invalid post or community ID"}), 400
+
+    return jsonify(post), 200
+
+
 @login_blueprint.route("/logout", methods=["GET", "POST"])
 def logout_post():
     current_app.logger.info("Logout attempt made")
