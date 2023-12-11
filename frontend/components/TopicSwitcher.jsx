@@ -11,20 +11,30 @@ import {
     TextField
 } from "@mui/material";
 import LoadingButton from "@mui/lab/LoadingButton";
+import {getCommunity} from "./utils.js";
 
 
 async function autocompleteCommunity(state, setState) {
     try {
-        const response = await fetch("/community/autocomplete");
+        const response = await fetch("/api/community");
         const body = await response.json();
 
         if (response.status !== 200) {
             throw Error(body.message);
         }
 
+        const results = body.map((community) => {
+            return {
+                label: community.name,
+                id: community.id,
+                type: "Community",
+            };
+        });
+
         setState({
             ...state,
-            searchResults: body.results
+            searchResults: results,
+            searchQuery: results.find((result) => result.id === getCommunity()),
         });
     } catch (e) {
         console.error("Failed to autocomplete community: " + e);
@@ -36,18 +46,18 @@ async function autocompleteCommunity(state, setState) {
     }
 }
 
-const TESTING_SEARCH_RESULTS = [
-    {label: "Topic 1", id: "topic1", type: "Topic"},
-    {label: "Topic 2", id: "topic2", type: "Topic"},
-    {label: "Topic 3", id: "topic3", type: "Topic"},
-    {label: "Topic 4", id: "topic4", type: "Topic"},
-    {label: "Topic 5", id: "topic5", type: "Topic"},
-    {label: "User 1", id: "user1", type: "User"},
-    {label: "User 2", id: "user2", type: "User"},
-    {label: "User 3", id: "user3", type: "User"},
-    {label: "User 4", id: "user4", type: "User"},
-    {label: "User 5", id: "user5", type: "User"},
-];
+// const TESTING_SEARCH_RESULTS = [
+//     {label: "Topic 1", id: "topic1", type: "Topic"},
+//     {label: "Topic 2", id: "topic2", type: "Topic"},
+//     {label: "Topic 3", id: "topic3", type: "Topic"},
+//     {label: "Topic 4", id: "topic4", type: "Topic"},
+//     {label: "Topic 5", id: "topic5", type: "Topic"},
+//     {label: "User 1", id: "user1", type: "User"},
+//     {label: "User 2", id: "user2", type: "User"},
+//     {label: "User 3", id: "user3", type: "User"},
+//     {label: "User 4", id: "user4", type: "User"},
+//     {label: "User 5", id: "user5", type: "User"},
+// ];
 
 async function handlePost(state, setState) {
     try {
@@ -82,7 +92,7 @@ async function submitPost(state, setState) {
     formData.append("image", state.imageUpload);
 
     try {
-        const response = await fetch(`/community/${state.searchQuery.id}/post`, {
+        const response = await fetch(`/api/community/${state.searchQuery.id}/post`, {
             method: "POST",
             body: formData,
         });
@@ -107,8 +117,8 @@ async function submitPost(state, setState) {
 
 export default function TopicSwitcher() {
     const [state, setState] = useState({
-        searchResults: TESTING_SEARCH_RESULTS,
-        searchQuery: TESTING_SEARCH_RESULTS[3],
+        searchResults: [],
+        searchQuery: [],
         postEditorOpen: false,
         title: "",
         text: "",
@@ -143,7 +153,7 @@ export default function TopicSwitcher() {
                 renderInput={(params) => <TextField {...params} label="Community"/>}
                 onChange={(event, value) => {
                     if (value) {
-                        console.log(value);
+                        location.href = `/community/${value.id}`;
                     }
                 }}
                 value={state.searchQuery}
@@ -190,6 +200,7 @@ export default function TopicSwitcher() {
                         <input
                             type="file"
                             id={"image-upload"}
+                            accept={"image/*"}
                             onChange={(event) => {
                                 setState({
                                     ...state,

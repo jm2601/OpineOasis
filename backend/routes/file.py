@@ -18,10 +18,10 @@ def files_get():
 
     file = db.session.query(File).filter(File.id == id).first()
 
-    if file is None or not os.path.exists(os.path.join(current_app.config["UPLOAD_FOLDER"], file.id)):
+    if file is None or not os.path.exists(os.path.join(current_app.config["UPLOAD_FOLDER"], str(file.id))):
         return jsonify({"message": "File not found"}), 404
 
-    return send_file(os.path.join(current_app.config["UPLOAD_FOLDER"], file.id), download_name=file.name,
+    return send_file(os.path.join(current_app.config["UPLOAD_FOLDER"], str(file.id)), download_name=file.name,
                      mimetype=mimetypes.guess_type(file.name)[0])
 
 
@@ -47,7 +47,7 @@ def files_post():
     # Create configured directory
     if not os.path.exists(current_app.config["UPLOAD_FOLDER"]):
         os.makedirs(current_app.config["UPLOAD_FOLDER"])
-    file.save(os.path.join(current_app.config["UPLOAD_FOLDER"], new_file.id))
+    file.save(os.path.join(current_app.config["UPLOAD_FOLDER"], str(new_file.id)))
 
     return jsonify({"message": "File uploaded successfully", "id": new_file.id}), 200
 
@@ -67,7 +67,7 @@ def files_delete():
     if user.permission != UserType.ADMIN and user.id != file.owner:
         return jsonify({"message": "You do not have permission to delete this file"}), 403
 
-    os.remove(os.path.join(current_app.config["UPLOAD_FOLDER"], file.id))
+    os.remove(os.path.join(current_app.config["UPLOAD_FOLDER"], str(file.id)))
 
     db.session.delete(file)
     db.session.commit()

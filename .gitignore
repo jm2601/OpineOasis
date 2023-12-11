@@ -29,3 +29,6 @@ yarn.lock
 venv
 *.egg-info
 __pycache__
+
+# other stuff
+backend/uploads

@@ -22,7 +22,22 @@ function ExpandableImage(props) {
                 </div>
             </>
     )
+}
 
+async function updateVote(state, setState) {
+    const response = await fetch(`/api/community/${state.community}/post/${state.id}/vote`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            vote: state.vote
+        })
+    });
+
+    if (response.status !== 200) {
+        console.error("Failed to update vote: " + await response.text());
+    }
 }
 
 export default function Post(props) {
@@ -39,8 +54,14 @@ export default function Post(props) {
         img: props.img,
     });
 
-    const handleUpvote = () => upvote(state, setState);
-    const handleDownvote = () => downvote(state, setState);
+    const handleUpvote = () => {
+        upvote(state, setState);
+        updateVote(state, setState);
+    };
+    const handleDownvote = () => {
+        downvote(state, setState);
+        updateVote(state, setState);
+    };
 
     const content = (
         <div className={"post-content"}>
@@ -68,7 +89,7 @@ export default function Post(props) {
                 </div>
                 {
                     props.full ? content :
-                        <a href={`/communities/${state.community}/posts/${state.id}`} className={"post-link"}>
+                        <a href={`/community/${state.community}/post/${state.id}`} className={"post-link"}>
                             {content}
                         </a>
                 }

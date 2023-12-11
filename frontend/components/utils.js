@@ -29,6 +29,8 @@ export function dateToText(date) {
     if (seconds > 1) {
         return `${Math.floor(seconds)} ${pluralize(Math.floor(seconds), "second")} ago`;
     }
+
+    return "just now";
 }
 
 export function truncatePreviewText(text) {
@@ -42,20 +44,37 @@ export function truncatePreviewText(text) {
 
 export function upvote(state, setState) {
     if (state.vote === 1) {
-        setState({...state, vote: 0, votes: state.votes - 1});
+        state.vote = 0;
+        state.votes -= 1;
     } else if (state.vote === -1) {
-        setState({...state, vote: 1, votes: state.votes + 2});
+        state.vote = 1;
+        state.votes += 2;
     } else {
-        setState({...state, vote: 1, votes: state.votes + 1});
+        state.vote = 1;
+        state.votes += 1;
     }
+
+    setState({...state});
 }
 
 export function downvote(state, setState) {
     if (state.vote === -1) {
-        setState({...state, vote: 0, votes: state.votes + 1});
+        state.vote = 0;
+        state.votes += 1;
     } else if (state.vote === 1) {
-        setState({...state, vote: -1, votes: state.votes - 2});
+        state.vote = -1;
+        state.votes -= 2;
     } else {
-        setState({...state, vote: -1, votes: state.votes - 1});
+        state.vote = -1;
+        state.votes -= 1;
     }
+
+    setState({...state});
+}
+
+export function getCommunity() {
+    const split = location.href.split("/");
+    const communityTag = split.indexOf("community");
+    const community = split[communityTag + 1];
+    return parseInt(community);
 }

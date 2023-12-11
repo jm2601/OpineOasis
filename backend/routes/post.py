@@ -1,32 +1,55 @@
 import mimetypes
 import os
 
-from flask import Blueprint, jsonify, send_file
+from flask import Blueprint, jsonify, send_file, send_from_directory
 from sqlalchemy import func
 from werkzeug.utils import secure_filename
 from datetime import datetime
 from models import *
 from auth.utilities import get_user
 
-post_blueprint = Blueprint("post_blueprint", __name__)
+post_blueprint = Blueprint("post_blueprint", __name__, static_folder="../../frontend/dist", static_url_path="/")
+
+
+@post_blueprint.route("/community/<int:community_id>/post/<int:post_id>", methods=["GET"])
+def post_view_get(community_id, post_id):
+    current_app.logger.info("Reading from post")
+    return send_from_directory(post_blueprint.static_folder, "post/index.html")
 
 
 @post_blueprint.route("/api/community/<int:community_id>/post/<int:post_id>", methods=["GET"])
 def post_get(community_id, post_id):
-    (post, user) = db.session.query(Post, User).filter(Post.community == community_id, Post.id == post_id, User.id == Post.user).first()
+    (post, user) = db.session.query(Post, User).filter(Post.community == community_id, Post.id == post_id,
+                                                       User.id == Post.user).first()
+    comments = db.session.query(Comment, User).filter(Comment.post == post.id, User.id == Comment.user).all()
     output = {
         "id": post.id,
         "title": post.title,
         "text": post.text,
         "date": post.date,
         "image": post.image,
-        "votes": db.session.query(func.sum(PostVote.vote)).filter(PostVote.post == post.id).scalar(),
+        "votes": db.session.query(func.coalesce(func.sum(PostVote.vote), 0)).filter(PostVote.post == post.id).scalar(),
+        "vote": db.session.query(func.coalesce(PostVote.vote, 0)).filter(PostVote.post == post.id, PostVote.user == user.id).scalar(),
+        "comments": db.session.query(func.coalesce(func.count(Comment.id), 0)).filter(Comment.post == post.id).scalar(),
         "user": {
             "id": user.id,
             "username": user.username,
             "name": user.name,
             "avatar": user.profile_picture
-        }
+        },
+        comments: [
+            {
+                "id": comment.id,
+                "text": comment.text,
+                "date": comment.date,
+                "user": {
+                    "id": comment_user.id,
+                    "username": comment_user.username,
+                    "name": comment_user.name,
+                    "avatar": comment_user.profile_picture
+                }
+            }
+            for comment, comment_user in comments]
     }
 
     return jsonify(output), 200
@@ -67,24 +90,34 @@ def post_post(community_id):
     if user is None:
         return jsonify({"message": "You must be logged in to upload files"}), 401
 
-    if "file" not in request.files:
-        return jsonify({"message": "No file provided"}), 400
+    if "title" not in request.form or "text" not in request.form:
+        return jsonify({"message": "Invalid request"}), 400
 
-    file = request.files["file"]
-    if file.filename == "":
-        return jsonify({"message": "No file provided"}), 400
+    file_id = None
 
-    new_file = File(secure_filename(file.filename), user.id, datetime.now().isoformat())
-    db.session.add(new_file)
+    if "file" in request.files:
+        file = request.files["file"]
+        if file.filename == "":
+            return jsonify({"message": "Filename not provided"}), 400
+
+        new_file = File(secure_filename(file.filename), user.id, datetime.now().isoformat())
+        db.session.add(new_file)
+        db.session.commit()
+        db.session.refresh(new_file)
+
+        file_id = new_file.id
+
+        # Create configured directory
+        if not os.path.exists(current_app.config["UPLOAD_FOLDER"]):
+            os.makedirs(current_app.config["UPLOAD_FOLDER"])
+        file.save(os.path.join(current_app.config["UPLOAD_FOLDER"], new_file.id))
+
+    new_post = Post(community_id, request.form["title"], datetime.now().isoformat(), request.form["text"], file_id, user.id)
+    db.session.add(new_post)
     db.session.commit()
-    db.session.refresh(new_file)
+    db.session.refresh(new_post)
 
-    # Create configured directory
-    if not os.path.exists(current_app.config["UPLOAD_FOLDER"]):
-        os.makedirs(current_app.config["UPLOAD_FOLDER"])
-    file.save(os.path.join(current_app.config["UPLOAD_FOLDER"], new_file.id))
-
-    return jsonify({"message": "File uploaded successfully", "id": new_file.id}), 200
+    return jsonify({"message": "Post created successfully", "id": new_post.id}), 200
 
 
 @post_blueprint.route("/api/community/<int:community_id>/post/<int:post_id>", methods=["DELETE"])

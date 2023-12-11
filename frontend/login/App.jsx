@@ -92,6 +92,7 @@ function App() {
 
             if (response.status === 200) {
                 window.location.href = "/";
+                return;
             }
 
             const body = await response.json();
