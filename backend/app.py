@@ -76,4 +76,4 @@ def prepare_db():
 
 if __name__ == '__main__':
     prepare_db()
-    app.run(debug=True, threaded=True, port=5172)
+    app.run(debug=True, threaded=True, port=5172, host="0.0.0.0")
