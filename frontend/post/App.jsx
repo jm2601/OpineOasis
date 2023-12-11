@@ -26,7 +26,7 @@ function generateComments(state, setState) {
                community={state.post.community}
                user={comment.user}
                text={comment.text}
-               date={comment.date}
+               date={new Date(comment.date)}
                vote={comment.vote}
                votes={comment.votes}
                replyTo={comment.replyTo}
