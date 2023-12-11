@@ -32,3 +32,4 @@ __pycache__
 
 # other stuff
 backend/uploads
+*.db
