@@ -40,6 +40,34 @@ def login_post():
     return response, 200
 
 
+@login_blueprint.route("/register", methods=["POST"])
+def register_post():
+    current_app.logger.info("Register attempt made")
+    data = request.get_json()
+    if data is None:
+        return jsonify({"success": False, "message": "No data received"}), 400
+    if "username" not in data or "password" not in data or "name" not in data:
+        return jsonify({"success": False, "message": "Missing username, password, name, or type"}), 400
+
+    if db.session.query(User).filter(User.username == data["username"]).count() > 0:
+        return jsonify({"success": False, "message": "Username already exists"}), 400
+
+    user = User(data["username"], data["name"], data["password"], UserType.USER)
+    db.session.add(user)
+    db.session.commit()
+
+    cookie = create_login_cookie(user.username, current_app.config["COOKIE_SECRET"])
+    response = jsonify({"success": True, "message": "Register successful", "user": {
+        "id": user.id,
+        "username": user.username,
+        "name": user.name,
+        "type": user.type
+    }})
+    response.set_cookie("session", cookie, httponly=True, samesite="strict", secure=True, max_age=604800)
+
+    return response, 200
+
+
 @login_blueprint.route("/logout", methods=["GET", "POST"])
 def logout_post():
     current_app.logger.info("Logout attempt made")

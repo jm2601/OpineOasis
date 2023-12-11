@@ -78,3 +78,10 @@ export function getCommunity() {
     const community = split[communityTag + 1];
     return parseInt(community);
 }
+
+export function getPost() {
+    const split = location.href.split("/");
+    const postTag = split.indexOf("post");
+    const post = split[postTag + 1];
+    return parseInt(post);
+}

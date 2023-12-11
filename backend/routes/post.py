@@ -19,25 +19,31 @@ def post_view_get(community_id, post_id):
 
 @post_blueprint.route("/api/community/<int:community_id>/post/<int:post_id>", methods=["GET"])
 def post_get(community_id, post_id):
+    current_user = get_user(request)
+    user_id = current_user.id if current_user is not None else None
+
     (post, user) = db.session.query(Post, User).filter(Post.community == community_id, Post.id == post_id,
                                                        User.id == Post.user).first()
     comments = db.session.query(Comment, User).filter(Comment.post == post.id, User.id == Comment.user).all()
+
     output = {
-        "id": post.id,
-        "title": post.title,
-        "text": post.text,
-        "date": post.date,
-        "image": post.image,
-        "votes": db.session.query(func.coalesce(func.sum(PostVote.vote), 0)).filter(PostVote.post == post.id).scalar(),
-        "vote": db.session.query(func.coalesce(PostVote.vote, 0)).filter(PostVote.post == post.id, PostVote.user == user.id).scalar(),
-        "comments": db.session.query(func.coalesce(func.count(Comment.id), 0)).filter(Comment.post == post.id).scalar(),
-        "user": {
-            "id": user.id,
-            "username": user.username,
-            "name": user.name,
-            "avatar": user.profile_picture
+        "post": {
+            "id": post.id,
+            "title": post.title,
+            "text": post.text,
+            "date": post.date,
+            "image": post.image,
+            "votes": db.session.query(func.coalesce(func.sum(PostVote.vote), 0)).filter(PostVote.post == post.id).scalar(),
+            "vote": db.session.query(func.coalesce(PostVote.vote, 0)).filter(PostVote.post == post.id, PostVote.user == user_id).scalar(),
+            "comments": db.session.query(func.coalesce(func.count(Comment.id), 0)).filter(Comment.post == post.id).scalar(),
+            "user": {
+                "id": user.id,
+                "username": user.username,
+                "name": user.name,
+                "avatar": user.profile_picture
+            }
         },
-        comments: [
+        "comments": [
             {
                 "id": comment.id,
                 "text": comment.text,
@@ -47,7 +53,8 @@ def post_get(community_id, post_id):
                     "username": comment_user.username,
                     "name": comment_user.name,
                     "avatar": comment_user.profile_picture
-                }
+                },
+                "replyTo": comment.reply_to
             }
             for comment, comment_user in comments]
     }
@@ -110,7 +117,7 @@ def post_post(community_id):
         # Create configured directory
         if not os.path.exists(current_app.config["UPLOAD_FOLDER"]):
             os.makedirs(current_app.config["UPLOAD_FOLDER"])
-        file.save(os.path.join(current_app.config["UPLOAD_FOLDER"], new_file.id))
+        file.save(os.path.join(current_app.config["UPLOAD_FOLDER"], str(new_file.id)))
 
     new_post = Post(community_id, request.form["title"], datetime.now().isoformat(), request.form["text"], file_id, user.id)
     db.session.add(new_post)
@@ -135,7 +142,8 @@ def post_delete(community_id, post_id):
     if user.permission != UserType.ADMIN and user.id != file.owner:
         return jsonify({"message": "You do not have permission to delete this file"}), 403
 
-    os.remove(os.path.join(current_app.config["UPLOAD_FOLDER"], file.id))
+    if os.path.exists(os.path.join(current_app.config["UPLOAD_FOLDER"], str(file.id))):
+        os.remove(os.path.join(current_app.config["UPLOAD_FOLDER"], str(file.id)))
 
     db.session.delete(file)
     db.session.commit()

@@ -47,6 +47,9 @@ def community_get_api():
 
 @community_blueprint.route("/api/community/<int:community_id>", methods=["GET"])
 def community_get_posts_api(community_id):
+    current_user = get_user(request)
+    user_id = current_user.id if current_user is not None else None
+
     posts = db.session.query(Post, User).filter(Post.community == community_id, User.id == Post.user).order_by(Post.date.desc()).all()
     output = [{
         "id": post.id,
@@ -55,7 +58,7 @@ def community_get_posts_api(community_id):
         "date": post.date,
         "image": post.image,
         "votes": db.session.query(func.coalesce(func.sum(PostVote.vote), 0)).filter(PostVote.post == post.id).scalar(),
-        "vote": db.session.query(func.coalesce(PostVote.vote, 0)).filter(PostVote.post == post.id, PostVote.user == user.id).scalar(),
+        "vote": db.session.query(func.coalesce(PostVote.vote, 0)).filter(PostVote.post == post.id, PostVote.user == user_id).scalar(),
         "comments": db.session.query(func.coalesce(func.count(Comment.id), 0)).filter(Comment.post == post.id).scalar(),
         "user": {
             "id": user.id,

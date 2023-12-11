@@ -31,10 +31,16 @@ async function autocompleteCommunity(state, setState) {
             };
         });
 
+        let searchQuery = results.find((result) => result.id === getCommunity());
+        if (searchQuery === undefined) {
+            location.href = "/";
+            return;
+        }
+
         setState({
             ...state,
             searchResults: results,
-            searchQuery: results.find((result) => result.id === getCommunity()),
+            searchQuery: searchQuery,
         });
     } catch (e) {
         console.error("Failed to autocomplete community: " + e);
@@ -89,7 +95,7 @@ async function submitPost(state, setState) {
     const formData = new FormData();
     formData.append("title", state.title);
     formData.append("text", state.text);
-    formData.append("image", state.imageUpload);
+    formData.append("file", state.imageUpload);
 
     try {
         const response = await fetch(`/api/community/${state.searchQuery.id}/post`, {

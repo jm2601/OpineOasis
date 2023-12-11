@@ -37,6 +37,8 @@ async function updateVote(state, setState) {
 
     if (response.status !== 200) {
         console.error("Failed to update vote: " + await response.text());
+        // Probably not logged in; redirect!
+        location.href = "/login";
     }
 }
 

@@ -104,7 +104,7 @@ class Post(Base):
     community = mapped_column(ForeignKey("community.id"), nullable=False)
     title = mapped_column(String(64), nullable=False)
     date = mapped_column(String(64), nullable=False)
-    text = mapped_column(String(1024), nullable=False)
+    text = mapped_column(String(16384), nullable=False)
     image = mapped_column(ForeignKey("file.id"), nullable=True)
     user = mapped_column(ForeignKey("user.id"), nullable=False)
 
@@ -124,7 +124,7 @@ class Comment(Base):
     id = mapped_column(Integer, primary_key=True, autoincrement=True)
     post = mapped_column(ForeignKey("post.id"), nullable=False)
     user = mapped_column(ForeignKey("user.id"), nullable=False)
-    text = mapped_column(String(1024), nullable=False)
+    text = mapped_column(String(16384), nullable=False)
     date = mapped_column(String(64), nullable=False)
     reply_to = mapped_column(ForeignKey("comment.id"), nullable=True)
 

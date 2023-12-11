@@ -6,6 +6,7 @@ import {useState} from "react";
 function App() {
     const [state, setState] = useState({
         username: "",
+        name: "",
         password: "",
         passwordConfirm: "",
         registrationOpen: false,
@@ -86,13 +87,13 @@ function App() {
                 },
                 body: JSON.stringify({
                     username: state.username,
+                    name: state.name,
                     password: state.password
                 })
             });
 
             if (response.status === 200) {
                 window.location.href = "/";
-                return;
             }
 
             const body = await response.json();
@@ -158,6 +159,16 @@ function App() {
                             margin={"normal"}
                             onChange={(e) => setState({...state, username: e.target.value})}
                             value={state.username}
+                        />
+                        <TextField
+                            id={"registerName"}
+                            label={"Display Name"}
+                            variant={"outlined"}
+                            type={"text"}
+                            fullWidth={true}
+                            margin={"normal"}
+                            onChange={(e) => setState({...state, name: e.target.value})}
+                            value={state.name}
                         />
                         <TextField
                             id={"registerPassword"}
