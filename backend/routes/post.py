@@ -142,10 +142,11 @@ def comment_post(community_id, post_id):
     text = json["text"]
     reply_to = json["replyTo"] if "replyTo" in json else None
 
-    try:
-        reply_to = int(reply_to)
-    except:
-        return jsonify({"message": "Invalid request"}), 400
+    if reply_to is not None:
+        try:
+            reply_to = int(reply_to)
+        except:
+            return jsonify({"message": "Invalid request"}), 400
 
     post = db.session.query(Post).filter(Post.id == post_id).first()
     if post is None:
