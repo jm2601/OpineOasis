@@ -6,7 +6,7 @@ import {
     DialogActions,
     DialogContent,
     DialogContentText,
-    DialogTitle,
+    DialogTitle, Link,
     Paper,
     TextField
 } from "@mui/material";
@@ -14,20 +14,24 @@ import {useEffect, useState} from "react";
 import Comment from "../components/Comment.jsx";
 import LoadingButton from "@mui/lab/LoadingButton";
 import {getCommunity, getPost} from "../components/utils.js";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
-function generateComments(state) {
+function generateComments(state, setState) {
     return state.comments.toSorted((a, b) => a.date - b.date).map((comment) => {
        return (
            <Comment
                id={comment.id}
                key={comment.id}
-               post={comment.post}
+               post={state.post.id}
+               community={state.post.community}
                user={comment.user}
                text={comment.text}
                date={comment.date}
                vote={comment.vote}
                votes={comment.votes}
-               replyTo={comment.replyTo} />
+               replyTo={comment.replyTo}
+               onReply={() => setState({...state, commentEditorOpen: true, replyTo: comment.id})}
+           />
        )
     });
 }
@@ -98,14 +102,14 @@ async function submitComment(state, setState) {
             commentLoading: true,
         });
 
-        const response = await fetch("/comment", {
+        const response = await fetch(`/api/community/${state.post.community}/post/${state.post.id}/comment`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
-                post: state.post.id,
                 text: state.text,
+                replyTo: state.replyTo,
             }),
         });
 
@@ -115,13 +119,13 @@ async function submitComment(state, setState) {
             throw Error(body.message);
         }
 
-        setState({
-            ...state,
-            commentLoading: false,
-            commentEditorOpen: false,
-            text: "",
-            comments: [...state.comments, body.comment],
-        });
+        state.commentLoading = false;
+        state.commentEditorOpen = false;
+        state.text = "";
+        state.replyTo = null;
+
+        setState({ ...state });
+        await fetchPost(state, setState);
     } catch (e) {
         console.error("Failed to submit comment: " + e);
 
@@ -141,6 +145,7 @@ function App() {
         commentEditorOpen: false,
         text: "",
         commentLoading: false,
+        replyTo: null,
     });
     
     const handleClose = () => setState({...state, commentEditorOpen: false});
@@ -153,18 +158,25 @@ function App() {
         <div className={"post-container"}>
             {
                 state.post === null ? (
-                    <>
-                        <span>Loading...</span>
-                    </>
+                    <Paper elevation={12} className={"post-comments"}>
+                        <span>Loading... If nothing shows up here, this page probably doesn't exist...</span>
+                    </Paper>
                 ) : (
                     <>
+                        <Paper elevation={12} className={"post-comments"}>
+                            <Link href={`/community/${state.post.community}`} sx={{display: "flex", alignItems: "center"}}>
+                                <ArrowBackIcon/>
+                                Go back to the community
+                            </Link>
+                        </Paper>
+
                         <Post full vote={state.post.vote} community={state.post.community} id={state.post.id} votes={state.post.votes} comments={state.post.comments} date={state.post.date} user={state.post.user} title={state.post.title} text={state.post.text} img={state.post.img} />
 
                         <Paper elevation={12} className={"post-comments"}>
                             <span className={"post-header"}>Post comments ({state.comments.length})</span>
                             <Button variant={"contained"} onClick={() => handleComment(state, setState)}>Add comment</Button>
                             <Dialog open={state.commentEditorOpen} onClose={handleClose}>
-                                <DialogTitle>Create post</DialogTitle>
+                                <DialogTitle>Create comment</DialogTitle>
                                 <DialogContent>
                                     <DialogContentText>
                                         Create a comment for this post. Please have fun and be nice! Or don't, I'm not your mom.
@@ -192,7 +204,7 @@ function App() {
                 )
             }
 
-            {generateComments(state)}
+            {generateComments(state, setState)}
         </div>
     )
 }

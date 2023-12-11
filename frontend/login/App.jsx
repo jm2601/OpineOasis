@@ -64,6 +64,13 @@ function App() {
                 loading: false
             });
             return;
+        } else if (state.name.length < 2) {
+            setState({
+                ...state,
+                error: "Name must be at least 2 characters",
+                loading: false
+            });
+            return;
         } else if (state.password.length < 4) {
             setState({
                 ...state,

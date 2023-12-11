@@ -54,7 +54,9 @@ def post_get(community_id, post_id):
                     "name": comment_user.name,
                     "avatar": comment_user.profile_picture
                 },
-                "replyTo": comment.reply_to
+                "replyTo": comment.reply_to,
+                "votes": db.session.query(func.coalesce(func.sum(CommentVote.vote), 0)).filter(CommentVote.comment == comment.id).scalar(),
+                "vote": db.session.query(func.coalesce(CommentVote.vote, 0)).filter(CommentVote.comment == comment.id, CommentVote.user == user_id).scalar(),
             }
             for comment, comment_user in comments]
     }
@@ -78,6 +80,10 @@ def post_vote(community_id, post_id):
     if vote != 1 and vote != -1 and vote != 0:
         return jsonify({"message": "Invalid request"}), 400
 
+    post = db.session.query(Post).filter(Post.id == post_id).first()
+    if post is None:
+        return jsonify({"message": "Post not found"}), 404
+
     post_vote_obj = db.session.query(PostVote).filter(PostVote.post == post_id, PostVote.user == user.id).first()
     if post_vote_obj is None:
         post_vote_obj = PostVote(post_id, user.id, int(vote))
@@ -88,6 +94,73 @@ def post_vote(community_id, post_id):
     db.session.commit()
 
     return jsonify({"message": "Vote successful"}), 200
+
+
+@post_blueprint.route("/api/community/<int:community_id>/post/<int:post_id>/comment/<int:comment_id>/vote", methods=["POST"])
+def comment_vote(community_id, post_id, comment_id):
+    user = get_user(request)
+
+    if user is None:
+        return jsonify({"message": "You must be logged in to vote"}), 401
+
+    json = request.get_json()
+    if json is None or "vote" not in json:
+        return jsonify({"message": "Invalid request"}), 400
+
+    vote = json["vote"]
+
+    if vote != 1 and vote != -1 and vote != 0:
+        return jsonify({"message": "Invalid request"}), 400
+
+    comment = db.session.query(Comment).filter(Comment.id == comment_id).first()
+    if comment is None:
+        return jsonify({"message": "Comment not found"}), 404
+
+    comment_vote_obj = db.session.query(CommentVote).filter(CommentVote.comment == comment_id, CommentVote.user == user.id).first()
+    if comment_vote_obj is None:
+        comment_vote_obj = CommentVote(comment_id, user.id, int(vote))
+        db.session.add(comment_vote_obj)
+    else:
+        comment_vote_obj.vote = vote
+
+    db.session.commit()
+
+    return jsonify({"message": "Vote successful"}), 200
+
+
+@post_blueprint.route("/api/community/<int:community_id>/post/<int:post_id>/comment", methods=["POST"])
+def comment_post(community_id, post_id):
+    user = get_user(request)
+
+    if user is None:
+        return jsonify({"message": "You must be logged in to comment"}), 401
+
+    json = request.get_json()
+    if json is None or "text" not in json:
+        return jsonify({"message": "Invalid request"}), 400
+
+    text = json["text"]
+    reply_to = json["replyTo"] if "replyTo" in json else None
+
+    try:
+        reply_to = int(reply_to)
+    except:
+        return jsonify({"message": "Invalid request"}), 400
+
+    post = db.session.query(Post).filter(Post.id == post_id).first()
+    if post is None:
+        return jsonify({"message": "Post not found"}), 404
+
+    comment_reply = db.session.query(Comment).filter(Comment.id == reply_to).first()
+    if reply_to is not None and comment_reply is None:
+        return jsonify({"message": "Reply comment not found"}), 404
+
+    comment = Comment(post_id, user.id, text, datetime.now().isoformat(), reply_to)
+    db.session.add(comment)
+    db.session.commit()
+    db.session.refresh(comment)
+
+    return jsonify({"message": "Comment successful", "id": comment.id}), 200
 
 
 @post_blueprint.route("/api/community/<int:community_id>/post", methods=["POST"])
