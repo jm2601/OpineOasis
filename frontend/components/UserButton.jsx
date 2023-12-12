@@ -17,6 +17,7 @@ async function checkLogin(state, setState) {
 
         setState({
             checkedLogin: true,
+            id: body.id,
             username: body.username,
             name: body.name
         });
@@ -35,7 +36,8 @@ export default function UserButton() {
     const [state, setState] = useState({
         checkedLogin: false,
         username: null,
-        name: null
+        name: null,
+        id: null
     });
 
     useEffect(() => {
@@ -77,7 +79,7 @@ export default function UserButton() {
                     {
                         state.username !== null ? (
                             [
-                                <MenuItem key={"account"} onClick={() => {location.href = `/users/${state.username}`}}><AccountCircleIcon style={{paddingRight: "5px"}}/> My Profile</MenuItem>,
+                                <MenuItem key={"account"} onClick={() => {location.href = `/user/${state.id}`}}><AccountCircleIcon style={{paddingRight: "5px"}}/> My Profile</MenuItem>,
                                 <MenuItem key={"settings"} onClick={() => {location.href = `/settings`}}><SettingsIcon style={{paddingRight: "5px"}}/> Settings</MenuItem>,
                                 <MenuItem key={"logout"} onClick={() => {location.href = `/logout`}}><LogoutIcon style={{paddingRight: "5px"}}/> Logout</MenuItem>
                             ]

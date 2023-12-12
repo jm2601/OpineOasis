@@ -201,25 +201,82 @@ def post_post(community_id):
     return jsonify({"message": "Post created successfully", "id": new_post.id}), 200
 
 
+@post_blueprint.route("/api/community/<int:community_id>/post/<int:post_id>", methods=["PUT"])
+def post_put(community_id, post_id):
+    user = get_user(request)
+
+    post = db.session.query(Post).filter(Post.id == post_id).first()
+
+    if post is None:
+        return jsonify({"message": "File not found"}), 404
+    if user.id != post.user:
+        return jsonify({"message": "You do not have permission to edit this post"}), 403
+
+    json = request.get_json()
+    if json is None or "text" not in json:
+        return jsonify({"message": "Invalid request"}), 400
+
+    post.text = json["text"]
+
+    db.session.commit()
+
+    return jsonify({"message": "File deleted successfully"}), 200
+
+
 @post_blueprint.route("/api/community/<int:community_id>/post/<int:post_id>", methods=["DELETE"])
 def post_delete(community_id, post_id):
     user = get_user(request)
 
-    id = request.args.get("id")
-    if id is None:
+    post = db.session.query(Post).filter(Post.id == post_id).first()
+
+    if post is None:
+        return jsonify({"message": "File not found"}), 404
+    if user.id != post.user:
+        return jsonify({"message": "You do not have permission to delete this post"}), 403
+
+    if os.path.exists(os.path.join(current_app.config["UPLOAD_FOLDER"], str(post.image))):
+        os.remove(os.path.join(current_app.config["UPLOAD_FOLDER"], str(post.image)))
+
+    db.session.delete(post)
+    db.session.commit()
+
+    return jsonify({"message": "File deleted successfully"}), 200
+
+
+@post_blueprint.route("/api/community/<int:community_id>/post/<int:post_id>/comment/<int:comment_id>", methods=["PUT"])
+def comment_put(community_id, post_id, comment_id):
+    user = get_user(request)
+
+    comment = db.session.query(Comment).filter(Comment.id == comment_id).first()
+
+    if comment is None:
+        return jsonify({"message": "File not found"}), 404
+    if user.id != comment.user:
+        return jsonify({"message": "You do not have permission to edit this comment"}), 403
+
+    json = request.get_json()
+    if json is None or "text" not in json:
         return jsonify({"message": "Invalid request"}), 400
 
-    file = db.session.query(Post).filter(Post.id == id).first()
+    comment.text = json["text"]
 
-    if file is None:
+    db.session.commit()
+
+    return jsonify({"message": "File deleted successfully"}), 200
+
+
+@post_blueprint.route("/api/community/<int:community_id>/post/<int:post_id>/comment/<int:comment_id>", methods=["DELETE"])
+def comment_delete(community_id, post_id, comment_id):
+    user = get_user(request)
+
+    comment = db.session.query(Comment).filter(Comment.id == comment_id).first()
+
+    if comment is None:
         return jsonify({"message": "File not found"}), 404
-    if user.permission != UserType.ADMIN and user.id != file.owner:
-        return jsonify({"message": "You do not have permission to delete this file"}), 403
+    if user.id != comment.user:
+        return jsonify({"message": "You do not have permission to delete this comment"}), 403
 
-    if os.path.exists(os.path.join(current_app.config["UPLOAD_FOLDER"], str(file.id))):
-        os.remove(os.path.join(current_app.config["UPLOAD_FOLDER"], str(file.id)))
-
-    db.session.delete(file)
+    db.session.delete(comment)
     db.session.commit()
 
     return jsonify({"message": "File deleted successfully"}), 200

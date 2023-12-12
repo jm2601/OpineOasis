@@ -1,9 +1,56 @@
 import "./Post.css"
 import {dateToText, downvote, pluralize, truncatePreviewText, upvote} from "./utils.js";
-import {IconButton, Paper} from "@mui/material";
+import {
+    Button,
+    Dialog, DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
+    IconButton,
+    Menu,
+    MenuItem,
+    Paper,
+    TextField
+} from "@mui/material";
 import {useState} from "react";
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+import DeleteIcon from "@mui/icons-material/Delete.js";
+import ModeEditIcon from "@mui/icons-material/ModeEdit.js";
+import LoadingButton from "@mui/lab/LoadingButton";
+
+async function deletePost(state, setState) {
+    const response = await fetch(`/api/community/${state.community}/post/${state.id}`, {
+        method: "DELETE"
+    });
+
+    if (response.status !== 200) {
+        console.error("Failed to delete post: " + await response.text());
+        alert("Failed to delete post");
+    } else {
+        location.reload();
+    }
+}
+
+async function editPost(state, setState) {
+    const response = await fetch(`/api/community/${state.community}/post/${state.id}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            text: state.editText
+        })
+    });
+
+    if (response.status !== 200) {
+        console.error("Failed to edit post: " + await response.text());
+        alert("Failed to edit post");
+    } else {
+        setState({...state, postEditorOpen: false, text: state.editText});
+    }
+}
 
 function ExpandableImage(props) {
     const [expanded, setExpanded] = useState(false);
@@ -54,6 +101,11 @@ export default function Post(props) {
         title: props.title,
         text: props.text,
         img: props.img,
+        currentUser: props.currentUser,
+        optionsAnchor: null,
+        postEditorOpen: false,
+        editText: props.text,
+        editLoading: false
     });
 
     const handleUpvote = () => {
@@ -66,18 +118,55 @@ export default function Post(props) {
     };
 
     const content = (
-        <div className={"post-content"}>
-            <div className={"post-header"}>
-                <img className={"post-user-avatar"} src={state.user.avatar} alt={state.user.username}/>
-                <div className={"post-user-info"}>
-                    <span>{state.user.username} - {dateToText(state.date)}</span>
-                </div>
-            </div>
+        <>
             <h1>{state.title}</h1>
             <p>{props.full ? state.text : truncatePreviewText(state.text)}</p>
             <p className={"post-comment-count"}>{state.comments} {pluralize(state.comments, "comment")}</p>
-        </div>
+        </>
     );
+
+    const optionsDropdown = (
+            state.user.id === state.currentUser ?
+                <>
+                    <IconButton size={"small"} onClick={(e) => setState({...state, optionsAnchor: e.currentTarget})}><MoreHorizIcon /></IconButton>
+                    <Menu
+                        id="basic-menu"
+                        anchorEl={state.optionsAnchor}
+                        open={Boolean(state.optionsAnchor)}
+                        onClose={() => setState({...state, optionsAnchor: null})}
+                        MenuListProps={{
+                            'aria-labelledby': 'basic-button',
+                        }}
+                    >
+                        <MenuItem onClick={() => deletePost(state, setState)}><DeleteIcon /> Delete</MenuItem>
+                        <MenuItem onClick={() => setState({...state, postEditorOpen: true, optionsAnchor: null})}><ModeEditIcon /> Edit</MenuItem>
+                    </Menu>
+                    <Dialog open={state.postEditorOpen} onClose={() => setState({...state, postEditorOpen: false})}>
+                        <DialogTitle>Edit comment</DialogTitle>
+                        <DialogContent>
+                            <DialogContentText>
+                                Updating your comment for this post.
+                            </DialogContentText>
+                            <TextField
+                                margin="dense"
+                                id="name"
+                                label="Text"
+                                type="text"
+                                fullWidth
+                                variant="standard"
+                                multiline
+                                rows={4}
+                                onChange={(e) => setState({...state, editText: e.target.value})}
+                                value={state.editText}
+                            />
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={() => setState({...state, postEditorOpen: false})}>Cancel</Button>
+                            <LoadingButton onClick={() => editPost(state, setState)} loading={state.editLoading}>Edit</LoadingButton>
+                        </DialogActions>
+                    </Dialog>
+                </> : null
+    )
 
     return (
         <Paper className="post" elevation={12}>
@@ -89,12 +178,23 @@ export default function Post(props) {
                     <IconButton onClick={handleDownvote}><ArrowDownwardIcon className={"post-vote-icon"}
                                                                             style={state.vote === -1 ? {color: "blue"} : null}/></IconButton>
                 </div>
-                {
-                    props.full ? content :
-                        <a href={`/community/${state.community}/post/${state.id}`} className={"post-link"}>
-                            {content}
-                        </a>
-                }
+
+                <div className={"post-content"}>
+                    <div className={"post-header"}>
+                        <img className={"post-user-avatar"} src={state.user.avatar} alt={state.user.username}/>
+                        <div className={"post-user-info"}>
+                            <span><a href={`/user/${state.user.id}`}>{state.user.username}</a> - {dateToText(state.date)} {optionsDropdown}</span>
+                        </div>
+                    </div>
+                    {
+                        props.full ? content :
+                            <a href={`/community/${state.community}/post/${state.id}`} className={"post-link"}>
+                                {content}
+                            </a>
+                    }
+                </div>
+
+
             </div>
 
             {

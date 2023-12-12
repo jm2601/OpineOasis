@@ -16,6 +16,22 @@ import LoadingButton from "@mui/lab/LoadingButton";
 import {getCommunity, getPost} from "../components/utils.js";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
+async function getCurrentUserId(state, setState) {
+    try {
+        const response = await fetch("/me");
+        const body = await response.json();
+
+        if (response.status !== 200) {
+            throw Error(body.message);
+        }
+
+        state.currentUser = body.id;
+        setState({ ...state });
+    } catch (e) {
+        // ignore
+    }
+}
+
 function generateComments(state, setState) {
     return state.comments.toSorted((a, b) => a.date - b.date).map((comment) => {
        return (
@@ -30,6 +46,7 @@ function generateComments(state, setState) {
                vote={comment.vote}
                votes={comment.votes}
                replyTo={comment.replyTo}
+               currentUser={state.currentUser}
                onReply={() => setState({...state, commentEditorOpen: true, replyTo: comment.id})}
            />
        )
@@ -58,6 +75,8 @@ async function handleComment(state, setState) {
 
 async function fetchPost(state, setState) {
     try {
+        await getCurrentUserId(state, setState);
+
         const community = getCommunity();
         const post = getPost();
 
@@ -75,6 +94,7 @@ async function fetchPost(state, setState) {
                 "img": body.post.image ? `/file?id=` + body.post.image : undefined,
                 "community": community,
                 "user": {
+                    id: body.post.user.id,
                     username: body.post.user.name === null ? (body.post.user.username === null ? "Anonymous" : body.post.user.username) : body.post.user.name,
                     avatar: body.post.user.avatar ? `/file?id=` + body.post.user.avatar : "/opineoasis2.svg"
                 },
@@ -84,6 +104,7 @@ async function fetchPost(state, setState) {
                 return {
                     ...comment,
                     user: {
+                        id: comment.user.id,
                         "username": comment.user.name === null ? (comment.user.username === null ? "Anonymous" : comment.user.username) : comment.user.name,
                         "avatar": comment.user.avatar ? `/file?id=` + comment.user.avatar : "/opineoasis2.svg"
                     },
@@ -146,6 +167,7 @@ function App() {
         text: "",
         commentLoading: false,
         replyTo: null,
+        currentUser: null,
     });
     
     const handleClose = () => setState({...state, commentEditorOpen: false});

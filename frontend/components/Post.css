@@ -19,6 +19,10 @@
     margin-bottom: 5px;
 }
 
+.post-header a {
+    color: #999999;
+}
+
 .post h1 {
     font-size: 1.5rem;
     margin: 0 0 5px 0;
