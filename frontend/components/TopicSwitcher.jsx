@@ -33,8 +33,11 @@ async function autocompleteCommunity(state, setState) {
 
         let searchQuery = results.find((result) => result.id === getCommunity());
         if (searchQuery === undefined) {
-            location.href = "/";
-            return;
+            searchQuery = {
+                label: "In the abyss~",
+                id: null,
+                type: "Community",
+            }
         }
 
         setState({

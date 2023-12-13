@@ -16,6 +16,8 @@ app.register_blueprint(login_blueprint)
 app.register_blueprint(community_blueprint)
 app.register_blueprint(post_blueprint)
 app.register_blueprint(file_blueprint)
+app.register_blueprint(settings_blueprint)
+app.register_blueprint(user_blueprint)
 
 CORS(app)
 

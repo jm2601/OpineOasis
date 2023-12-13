@@ -1,0 +1,22 @@
+.drawable {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.drawable-controls {
+    display: flex;
+    flex-direction: row;
+    background-color: #EEEEEE;
+    padding: 2px;
+
+    align-items: center;
+    justify-content: center;
+}
+
+.drawable-title {
+    margin-left: 5px;
+    margin-right: auto;
+    color: #777777;
+    user-select: none;
+}

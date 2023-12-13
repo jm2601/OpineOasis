@@ -1,0 +1,47 @@
+main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+main > div.post {
+    flex: 1;
+    width: 100%;
+    max-width: 800px;
+    margin-bottom: 20px;
+}
+
+.avatar-container, .avatar-container label {
+    cursor: pointer;
+    margin: 10px 0;
+
+    display: flex;
+    align-items: center;
+}
+
+.avatar-container span {
+    margin-left: 10px;
+    color: #999999
+}
+
+.avatar-container img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    object-position: center;
+}
+
+div.MuiFormControl-root {
+    margin: 10px 0;
+}
+
+hr {
+    width: 100%;
+    margin: 20px 0 10px 0;
+}
+
+.settings-container {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}

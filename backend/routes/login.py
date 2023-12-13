@@ -91,7 +91,8 @@ def me_get():
         "id": user.id,
         "username": user.username,
         "name": user.name,
-        "type": user.type
+        "type": user.type,
+        "avatar": user.profile_picture
     })
 
 
