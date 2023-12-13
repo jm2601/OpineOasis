@@ -11,6 +11,7 @@ from routes import *
 
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
+app.config.from_pyfile('configopenai.py')
 
 app.register_blueprint(login_blueprint)
 app.register_blueprint(community_blueprint)
@@ -18,6 +19,7 @@ app.register_blueprint(post_blueprint)
 app.register_blueprint(file_blueprint)
 app.register_blueprint(settings_blueprint)
 app.register_blueprint(user_blueprint)
+app.register_blueprint(magic_blueprint)
 
 CORS(app)
 

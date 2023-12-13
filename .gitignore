@@ -33,3 +33,4 @@ __pycache__
 # other stuff
 backend/uploads
 *.db
+/backend/configopenai.py

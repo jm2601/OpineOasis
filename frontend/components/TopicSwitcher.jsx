@@ -7,11 +7,12 @@ import {
     DialogActions,
     DialogContent,
     DialogContentText,
-    DialogTitle,
+    DialogTitle, IconButton,
     TextField
 } from "@mui/material";
 import LoadingButton from "@mui/lab/LoadingButton";
 import {getCommunity} from "./utils.js";
+import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 
 
 async function autocompleteCommunity(state, setState) {
@@ -133,6 +134,7 @@ export default function TopicSwitcher() {
         text: "",
         imageUpload: null,
         postLoading: false,
+        doingMagic: false,
     });
 
     useEffect(() => {
@@ -148,6 +150,45 @@ export default function TopicSwitcher() {
 
         return output;
     }, [state.searchResults]);
+
+    const summonMagic = async () => {
+        setState({...state, doingMagic: true});
+
+        try {
+            const response = await fetch("/api/magic/post", {
+                method: "POST",
+                body: JSON.stringify({
+                    community: state.searchQuery.id,
+                    title: state.title,
+                    text: state.text,
+                }),
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+            const body = await response.json();
+
+            if (response.status !== 200) {
+                throw Error(body.message);
+            }
+
+            setState({
+                ...state,
+                title: body.title,
+                text: body.text,
+                doingMagic: false,
+            });
+        } catch (e) {
+            console.error("Failed to summon magic: " + e);
+
+            alert("Failed to summon magic: " + e);
+
+            setState({
+                ...state,
+                doingMagic: false,
+            });
+        }
+    }
 
     const handleClose = () => setState({...state, postEditorOpen: false});
 
@@ -174,6 +215,9 @@ export default function TopicSwitcher() {
                     <DialogContentText>
                         Create a post in {state.searchQuery.label}. Please have fun and be nice! Or don't, I'm not your mom.
                     </DialogContentText>
+                    <DialogContentText style={{color: "#999999"}}>
+                        <IconButton onClick={summonMagic} disabled={state.doingMagic}><AutoFixHighIcon/></IconButton> {state.doingMagic ? "Summoning magic..." : "Summon magic to help you write your post!"}
+                    </DialogContentText>
                     <TextField
                         autoFocus
                         margin="dense"
@@ -184,6 +228,7 @@ export default function TopicSwitcher() {
                         variant="standard"
                         onChange={(e) => setState({...state, title: e.target.value})}
                         value={state.title}
+                        disabled={state.doingMagic}
                     />
                     <TextField
                         margin="dense"
@@ -196,6 +241,7 @@ export default function TopicSwitcher() {
                         rows={4}
                         onChange={(e) => setState({...state, text: e.target.value})}
                         value={state.text}
+                        disabled={state.doingMagic}
                     />
                     <DialogContentText style={{marginTop: "20px"}}>
                         Maybe add an image?
@@ -204,6 +250,7 @@ export default function TopicSwitcher() {
                         variant="contained"
                         component="label"
                         style={state.imageUpload ? {backgroundColor: "limegreen"} : null}
+                        disabled={state.doingMagic}
                     >
                         Upload Image
                         <input
@@ -222,7 +269,7 @@ export default function TopicSwitcher() {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleClose}>Cancel</Button>
-                    <LoadingButton onClick={() => submitPost(state, setState)} loading={state.postLoading}>Post</LoadingButton>
+                    <LoadingButton onClick={() => submitPost(state, setState)} loading={state.postLoading} disabled={state.doingMagic}>Post</LoadingButton>
                 </DialogActions>
             </Dialog>
         </span>

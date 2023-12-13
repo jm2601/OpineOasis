@@ -4,3 +4,4 @@ from routes.post import *
 from routes.file import *
 from routes.user import *
 from routes.settings import *
+from routes.magic import *
